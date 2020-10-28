@@ -32,8 +32,42 @@ app.use(cors(corsOptions));
 app.use(express.json());
 
 app.get('/get_products', (req, res) => {
-    res.json({"status": 'success',"products": products})
+  res.json({"status": 'success',"products": products.sort((a,b) => a.id - b.id)})
 });
+
+app.get('/get_products/filter/price_down', (req, res) => {
+  res.json({"status": 'success', "products": products.sort((a, b) => {
+      let aPrice = 0;
+      let bPrice = 0;
+      a.sale ? aPrice = Math.floor(a.price * 0.85) : aPrice = a.price;
+      b.sale ? bPrice = Math.floor(b.price * 0.85) : bPrice = b.price;
+
+      return aPrice - bPrice;
+    })
+  })
+})
+
+app.get('/get_products/filter/price_up', (req, res) => {
+  res.json({"status": 'success', "products": products.sort((a, b) => {
+      let aPrice = 0;
+      let bPrice = 0;
+      a.sale ? aPrice = Math.floor(a.price * 0.85) : aPrice = a.price;
+      b.sale ? bPrice = Math.floor(b.price * 0.85) : bPrice = b.price;
+
+      return bPrice - aPrice;
+    })
+  })
+})
+
+app.post('/get_products/filter/search', (req, res) => {
+  const payload = req.body.searchString.toLowerCase();
+  res.json(
+    {"status": 'success', "products": products.filter(({text, size, price, sale}) => {
+        return text.toLowerCase().includes(payload) || size.includes(payload) || ((sale ? Math.floor(price * 0.85) : price) == payload)
+    })}
+  )
+})
+
 app.use('/create_order', (req, res) => {
     console.log(req.body)
     res.json({"status": 'success'})
